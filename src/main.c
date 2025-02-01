@@ -12,8 +12,15 @@ static int grid_height = 24;
 
 enum TILES { EMPTY, SNAKE, FRUIT };
 
+typedef enum DIRECTION { LEFT, RIGHT, UP, DOWN } DIRECTION;
+
+typedef struct State {
+    int *grid;
+    DIRECTION player_face;
+} State;
+
 void log_game_grid(int *game_grid) {
-    char *buf = SDL_malloc(sizeof(char) * grid_width * 2 + 1);
+    char *buf = SDL_malloc(sizeof(char) * grid_width * 2);
     for (int i = 0; i < grid_height; i++) {
         for (int j = 0; j < grid_width; j++) {
             buf[2 * j] = '0' + game_grid[i * grid_width + j];
@@ -23,6 +30,14 @@ void log_game_grid(int *game_grid) {
         SDL_Log("%s", buf);
     }
     SDL_free(buf);
+}
+
+void set_grid_at(int *grid, int row, int col, int value) {
+    grid[row * grid_width + col] = value;
+}
+
+int get_grid_at(int *grid, int row, int col) {
+    return grid[row * grid_width + col];
 }
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
@@ -40,15 +55,18 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     int *game_grid = SDL_malloc(sizeof(int) * grid_width * grid_height);
     for (int i = 0; i < grid_height; i++) {
         for (int j = 0; j < grid_width; j++) {
-            game_grid[i * grid_width + j] = EMPTY;
+            set_grid_at(game_grid, i, j, EMPTY);
         }
     }
-    game_grid[16 * grid_width + 12] = SNAKE;
-    game_grid[12 * grid_width + 4] = FRUIT;
-    game_grid[5 * grid_width + 18] = FRUIT;
 
-    *appstate = game_grid;
-    log_game_grid(*appstate);
+    set_grid_at(game_grid, 12, 16, SNAKE);
+    set_grid_at(game_grid, 4, 12, FRUIT);
+    set_grid_at(game_grid, 18, 5, FRUIT);
+
+    State *state = SDL_malloc(sizeof(State));
+    state->grid = game_grid;
+    state->player_face = UP;
+    *appstate = state;
 
     return SDL_APP_CONTINUE;
 }
@@ -63,14 +81,37 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 }
 
 SDL_AppResult SDL_AppIterate(void *appstate) {
-    const double now = ((double)SDL_GetTicks()) / 1000.0;
-    const float red = (float)(0.5 + 0.5 * SDL_sin(now));
-    const float green = (float)(0.5 + 0.5 * SDL_sin(now + SDL_PI_D * 2 / 3));
-    const float blue = (float)(0.5 + 0.5 * SDL_sin(now + SDL_PI_D * 4 / 3));
+    State *stateptr = appstate;
+    int *game_grid = stateptr->grid;
 
-    SDL_SetRenderDrawColorFloat(renderer, red, green, blue,
-                                SDL_ALPHA_OPAQUE_FLOAT);
+    SDL_SetRenderDrawColorFloat(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE_FLOAT);
     SDL_RenderClear(renderer);
+
+    SDL_FRect rect;
+    rect.w = (float)width / grid_width;
+    rect.h = (float)height / grid_height;
+    for (int i = 0; i < grid_height; i++) {
+        for (int j = 0; j < grid_width; j++) {
+            switch (get_grid_at(game_grid, i, j)) {
+            case EMPTY:
+                SDL_SetRenderDrawColorFloat(renderer, 0, 0, 0,
+                                            SDL_ALPHA_OPAQUE_FLOAT);
+                break;
+            case SNAKE:
+                SDL_SetRenderDrawColorFloat(renderer, 255, 255, 255,
+                                            SDL_ALPHA_OPAQUE_FLOAT);
+                break;
+            case FRUIT:
+                SDL_SetRenderDrawColorFloat(renderer, 255, 0, 0,
+                                            SDL_ALPHA_OPAQUE_FLOAT);
+                break;
+            }
+            rect.x = j * rect.w;
+            rect.y = i * rect.h;
+            SDL_RenderFillRect(renderer, &rect);
+        }
+    }
+
     SDL_RenderPresent(renderer);
 
     return SDL_APP_CONTINUE;
