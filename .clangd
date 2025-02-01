@@ -1,0 +1,11 @@
+CompileFlags:
+  Compiler: gcc
+  Add: [
+    -Wall,
+    -Wextra,
+    -pedantic,
+    -Llib,
+    -lpthread,
+    -Iinclude,
+    -lSDL3,
+  ]

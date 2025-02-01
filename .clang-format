@@ -1,0 +1,6 @@
+# Common settings
+BasedOnStyle:    llvm # WebKit
+TabWidth:        4
+IndentWidth:     4
+UseTab:          Never 
+ColumnLimit:     80
