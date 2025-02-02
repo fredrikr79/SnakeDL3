@@ -2,6 +2,8 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
+#define FPS 60
+
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
 
@@ -10,6 +12,8 @@ static int height = 480;
 static int grid_width = 32;
 static int grid_height = 24;
 
+static Uint64 last;
+
 enum TILES { EMPTY, SNAKE, FRUIT };
 
 typedef enum DIRECTION { LEFT, RIGHT, UP, DOWN } DIRECTION;
@@ -17,6 +21,7 @@ typedef enum DIRECTION { LEFT, RIGHT, UP, DOWN } DIRECTION;
 typedef struct State {
     int *grid;
     DIRECTION player_face;
+    SDL_FRect *r;
 } State;
 
 void log_game_grid(int *game_grid) {
@@ -63,10 +68,19 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     set_grid_at(game_grid, 4, 12, FRUIT);
     set_grid_at(game_grid, 18, 5, FRUIT);
 
+    SDL_FRect *rect2 = SDL_malloc(sizeof(SDL_FRect));
+    rect2->y = 240;
+    rect2->x = 0;
+    rect2->w = 100;
+    rect2->h = 100;
+
     State *state = SDL_malloc(sizeof(State));
     state->grid = game_grid;
     state->player_face = UP;
+    state->r = rect2;
     *appstate = state;
+
+    last = SDL_GetTicksNS();
 
     return SDL_APP_CONTINUE;
 }
@@ -83,6 +97,8 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 SDL_AppResult SDL_AppIterate(void *appstate) {
     State *stateptr = appstate;
     int *game_grid = stateptr->grid;
+    Uint64 delta = SDL_GetTicksNS() - last;
+    double duration = (double)delta / (FPS * 1000);
 
     SDL_SetRenderDrawColorFloat(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE_FLOAT);
     SDL_RenderClear(renderer);
@@ -112,7 +128,15 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         }
     }
 
+    SDL_FRect *rect2 = stateptr->r;
+    rect2->x += 5 * (double)delta / 1000000;
+    SDL_Log("%f %f %f %f", rect2->x, rect2->y, rect2->w, rect2->h);
+    SDL_SetRenderDrawColorFloat(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE_FLOAT);
+    SDL_RenderFillRect(renderer, rect2);
+
     SDL_RenderPresent(renderer);
+
+    last = SDL_GetTicksNS();
 
     return SDL_APP_CONTINUE;
 }
