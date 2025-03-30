@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#define KB(x) x * 1024
+
 typedef struct {
   char *buffer;
   size_t size;

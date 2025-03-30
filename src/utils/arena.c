@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define KB(x) x * 1024
-
 void arena_init(Arena *a, size_t size) {
   *a = (Arena){.buffer = malloc(size), .size = size, .offset = 0};
   if (a->buffer == NULL)
