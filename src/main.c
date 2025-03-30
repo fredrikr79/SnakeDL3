@@ -12,6 +12,8 @@ static SDL_Renderer *renderer = NULL;
 #define GRID_PADDING 2
 #define GRID_WIDTH 20
 #define GRID_HEIGHT 20
+#define TILE_WIDTH 20
+#define TILE_HEIGHT 20
 
 enum GRID_TILES { EMPTY, SNAKE, FRUIT };
 enum SNAKE_PARTS { TAIL, BODY, HEAD };
@@ -94,8 +96,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   SDL_RenderClear(renderer);
 
   SDL_FRect rect;
-  rect.w = (float)(WINDOW_WIDTH - 2 * GRID_PADDING) / GRID_WIDTH;
-  rect.h = (float)(WINDOW_HEIGHT - 2 * GRID_PADDING) / GRID_HEIGHT;
+  rect.w = TILE_WIDTH;
+  rect.h = TILE_HEIGHT;
   for (int i = 0; i < GRID_HEIGHT; i++) {
     for (int j = 0; j < GRID_WIDTH; j++) {
       switch (GET_GRID_AT(game_grid, i, j)) {
@@ -109,8 +111,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         SDL_SetRenderDrawColor(renderer, COLOR_FRUIT);
         break;
       }
-      rect.x = j * rect.w + GRID_PADDING;
-      rect.y = i * rect.h + GRID_PADDING;
+      rect.x = j * (rect.w + GRID_PADDING);
+      rect.y = i * (rect.h + GRID_PADDING);
       // SDL_Log("x: %f, y: %f, w: %f, h: %f", rect.x, rect.y, rect.w, rect.h);
       SDL_RenderFillRect(renderer, &rect);
     }
