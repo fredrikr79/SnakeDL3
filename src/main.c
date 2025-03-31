@@ -10,10 +10,10 @@ static SDL_Renderer *renderer = NULL;
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
 #define GRID_PADDING 2
-#define GRID_WIDTH 20
-#define GRID_HEIGHT 20
-#define TILE_WIDTH 20
-#define TILE_HEIGHT 20
+#define GRID_WIDTH 18
+#define GRID_HEIGHT 15
+#define TILE_WIDTH 24
+#define TILE_HEIGHT 24
 
 enum GRID_TILES { EMPTY, SNAKE, FRUIT };
 enum SNAKE_PARTS { TAIL, BODY, HEAD };
@@ -27,18 +27,18 @@ typedef enum DIRECTION { LEFT, RIGHT, UP, DOWN } DIRECTION;
 
 typedef struct Snake {
   DIRECTION direction;
-  int length;
+  Uint8 length;
 } Snake;
 
 typedef struct State {
-  int grid[GRID_HEIGHT * GRID_WIDTH];
+  Uint8 grid[GRID_HEIGHT * GRID_WIDTH];
   Snake *player;
 } State;
 
 #define SET_GRID_AT(grid, row, col, value) grid[row * GRID_WIDTH + col] = value
 #define GET_GRID_AT(grid, row, col) grid[row * GRID_WIDTH + col]
 
-void log_game_grid(int *game_grid) {
+void log_game_grid(Uint8 *game_grid) {
   char buf[GRID_WIDTH * 2];
   for (int i = 0; i < GRID_HEIGHT; i++) {
     for (int j = 0; j < GRID_WIDTH; j++) {
@@ -71,7 +71,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
   SET_GRID_AT(state->grid, GRID_WIDTH / 2, GRID_HEIGHT / 2, SNAKE);
   SET_GRID_AT(state->grid, 4, 12, FRUIT);
-  SET_GRID_AT(state->grid, 18, 5, FRUIT);
+  SET_GRID_AT(state->grid, 13, 5, FRUIT);
 
   log_game_grid(state->grid);
 
@@ -90,7 +90,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 
 SDL_AppResult SDL_AppIterate(void *appstate) {
   State *stateptr = appstate;
-  int *game_grid = stateptr->grid;
+  Uint8 *game_grid = stateptr->grid;
 
   SDL_SetRenderDrawColor(renderer, COLOR_BG);
   SDL_RenderClear(renderer);
@@ -98,6 +98,10 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   SDL_FRect rect;
   rect.w = TILE_WIDTH;
   rect.h = TILE_HEIGHT;
+  const int startx = (WINDOW_WIDTH - GRID_WIDTH * (TILE_WIDTH + GRID_PADDING)) / 2;
+  const int starty = (WINDOW_HEIGHT - GRID_HEIGHT * (TILE_HEIGHT + GRID_PADDING)) / 2;
+
+  SDL_Log("%d %d\n", startx, starty);
   for (int i = 0; i < GRID_HEIGHT; i++) {
     for (int j = 0; j < GRID_WIDTH; j++) {
       switch (GET_GRID_AT(game_grid, i, j)) {
@@ -111,8 +115,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         SDL_SetRenderDrawColor(renderer, COLOR_FRUIT);
         break;
       }
-      rect.x = j * (rect.w + GRID_PADDING);
-      rect.y = i * (rect.h + GRID_PADDING);
+      rect.x = startx + j * (rect.w + GRID_PADDING);
+      rect.y = starty + i * (rect.h + GRID_PADDING);
       // SDL_Log("x: %f, y: %f, w: %f, h: %f", rect.x, rect.y, rect.w, rect.h);
       SDL_RenderFillRect(renderer, &rect);
     }
