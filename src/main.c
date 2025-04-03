@@ -1,4 +1,3 @@
-#include "SDL3/SDL_stdinc.h"
 #define SDL_MAIN_USE_CALLBACKS 1
 #include "utils/arena.h"
 #include "utils/vector.h"
@@ -44,10 +43,10 @@ typedef struct State {
 static Arena arena;
 
 #define INDEX_AT(row, col) ((row) * GRID_WIDTH + (col))
-#define ROW_AT(index) (index / GRID_WIDTH)
-#define COL_AT(index) (index % GRID_WIDTH)
-#define SET_GRID_AT(grid, row, col, value) grid[INDEX_AT(row, col)] = value
-#define GET_GRID_AT(grid, row, col) grid[INDEX_AT(row, col)]
+#define ROW_AT(index) ((index) / GRID_WIDTH)
+#define COL_AT(index) ((index) % GRID_WIDTH)
+#define SET_GRID_AT(grid, row, col, value) (grid)[INDEX_AT((row), (col))] = (value)
+#define GET_GRID_AT(grid, row, col) (grid)[INDEX_AT((row), (col))]
 
 void log_game_grid(Uint8 *game_grid) {
   char buf[GRID_WIDTH * 2];
@@ -184,7 +183,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
   SDL_SetRenderDrawColor(renderer, COLOR_SNAKE);
   for (int i = 0; i < playerptr->length; i++) {
-    int b = vector_pop(playerptr->body);
+    int b = playerptr->body->data[i];
     rect.x = startx + ROW_AT(b) * (rect.w + GRID_PADDING);
     rect.y = starty + COL_AT(b) * (rect.h + GRID_PADDING);
     SDL_RenderFillRect(renderer, &rect);
