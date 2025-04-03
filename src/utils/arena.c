@@ -46,17 +46,17 @@ void arena_free(Arena *a) {
   free(a);
 }
 
-int main(void) {
-  printf("this is the `arena.c` utility main method.\n");
+// int main(void) {
+//   printf("this is the `arena.c` utility main method.\n");
 
-  Arena a = {0};
-  arena_init(&a, KB(2));
+//   Arena a = {0};
+//   arena_init(&a, KB(2));
 
-  int *t = arena_alloc(&a, 6, sizeof(int), _Alignof(int));
+//   int *t = arena_alloc(&a, 6, sizeof(int), _Alignof(int));
 
-  for (int *i = t; i < t + 6; i++) {
-    printf("%d ", *i);
-  }
+//   for (int *i = t; i < t + 6; i++) {
+//     printf("%d ", *i);
+//   }
 
-  return 0;
-}
+//   return 0;
+// }
