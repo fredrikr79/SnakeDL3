@@ -2,25 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void vector_init(Vector **v, int capacity) {
-  *v = malloc(sizeof(Vector));
-  if (!*v) {
-    printf("vector_init: failed to allocate vector pointer\n");
-    return;
-  }
-  (*v)->data = malloc(capacity * sizeof(int));
-  if (!(*v)->data) {
+void vector_init(Vector *v, int capacity) {
+  v->data = malloc(capacity * sizeof(int));
+  if (!v->data) {
     printf("vector_init: failed to allocate data\n");
     return;
   }
-  (*v)->size = 0;
-  (*v)->_capacity = capacity;
-}
-
-Vector *vector_new(void) {
-  Vector *v;
-  vector_init(&v, VEC_MIN);
-  return v;
+  v->size = 0;
+  v->_capacity = capacity;
 }
 
 void vector_grow(Vector *v) {
@@ -61,7 +50,6 @@ void vector_free(Vector *v) {
   free(v->data);
   v->size = 0;
   v->_capacity = 0;
-  free(v);
 }
 
 void vector_print(Vector v) {

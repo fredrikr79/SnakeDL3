@@ -43,7 +43,6 @@ void arena_free(Arena *a) {
   free(a->buffer);
   a->size = 0;
   a->offset = 0;
-  free(a);
 }
 
 // int main(void) {

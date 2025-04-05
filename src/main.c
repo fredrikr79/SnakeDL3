@@ -31,12 +31,12 @@ typedef enum DIRECTION { LEFT, RIGHT, UP, DOWN } DIRECTION;
 typedef struct Snake {
   DIRECTION direction;
   int length;
-  Vector *body;
+  Vector body;
 } Snake;
 
 typedef struct State {
   Snake *player;
-  Vector *fruits;
+  Vector fruits;
   Uint64 last_frame;
 } State;
 
@@ -86,11 +86,9 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   }
   state->player->direction = UP;
   state->player->length = 3;
-  state->player->body = (Vector *)arena_alloc(&arena, 1, sizeof(Vector), _Alignof(Vector));
-  if (!state->player->body) {
-    SDL_Log("Failed to allocate player body");
-    return SDL_APP_FAILURE;
-  }
+  vector_new(&state->player->body);
+  vector_pusha(&state->player->body, (int[]){1, 2, 3}, 3);
+  vector_print(state->player->body);
 
   state->last_frame = SDL_GetTicks();
   *appstate = state;
@@ -131,21 +129,21 @@ void game_step(State *stateptr) {
   // SDL_Log("snek: %d %d %d %d", player->direction, player->length, player->head_index,
   //         player->tail_index);
   Snake *playerptr = stateptr->player;
-  int head = vector_pop(stateptr->player->body);
-  vector_push(stateptr->player->body, head);
+  int head = vector_pop(&stateptr->player->body);
+  vector_push(&stateptr->player->body, head);
 
   switch (playerptr->direction) {
   case RIGHT:
-    vector_push(playerptr->body, head + 1);
+    vector_push(&playerptr->body, head + 1);
     break;
   case UP:
-    vector_push(playerptr->body, head - GRID_WIDTH);
+    vector_push(&playerptr->body, head - GRID_WIDTH);
     break;
   case LEFT:
-    vector_push(playerptr->body, head - 1);
+    vector_push(&playerptr->body, head - 1);
     break;
   case DOWN:
-    vector_push(playerptr->body, head + GRID_WIDTH);
+    vector_push(&playerptr->body, head + GRID_WIDTH);
     break;
   }
 }
@@ -183,7 +181,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
   SDL_SetRenderDrawColor(renderer, COLOR_SNAKE);
   for (int i = 0; i < playerptr->length; i++) {
-    int b = playerptr->body->data[i];
+    int b = playerptr->body.data[i];
     rect.x = startx + ROW_AT(b) * (rect.w + GRID_PADDING);
     rect.y = starty + COL_AT(b) * (rect.h + GRID_PADDING);
     SDL_RenderFillRect(renderer, &rect);
