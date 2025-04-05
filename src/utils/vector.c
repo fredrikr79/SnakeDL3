@@ -48,6 +48,10 @@ void vector_pusha(Vector *v, int *vals, int n) {
 }
 
 int vector_pop(Vector *v) {
+  if (v->size < 1) {
+    printf("vector_pop: popping empty vector");
+    return 0;
+  }
   int val = v->data[v->size - 1];
   v->size--;
   return val;
@@ -68,13 +72,13 @@ void vector_print(Vector v) {
   printf("\n");
 }
 
-int main(int argc, char *argv[]) {
-  Vector *v = vector_new();
-  vector_push(v, 20);
-  vector_pusha(v, (int[]){1, 2, 3}, 3);
-  vector_print(*v);
-  printf("oops, i removed %d\n", vector_pop(v));
-  vector_print(*v);
-  vector_free(v);
-  return 0;
-}
+// int main(int argc, char *argv[]) {
+//   Vector *v = vector_new();
+//   vector_push(v, 20);
+//   vector_pusha(v, (int[]){1, 2, 3}, 3);
+//   vector_print(*v);
+//   printf("oops, i removed %d\n", vector_pop(v));
+//   vector_print(*v);
+//   vector_free(v);
+//   return 0;
+// }
