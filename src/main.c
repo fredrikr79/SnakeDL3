@@ -122,21 +122,59 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 }
 
 void game_step(State *stateptr) {
-  vector_print(stateptr->player.body);
-  int head = vector_pop(&stateptr->player.body);
+  DIRECTION dir = stateptr->player.direction;
+  for (int i = 0; i < stateptr->player.length - 1; i++) {
+    int cur = stateptr->player.body.data[i];
+    switch (dir) {
+    case RIGHT:
+      stateptr->player.body.data[i] = cur + 1;
+      break;
+    case UP:
+      stateptr->player.body.data[i] = cur - GRID_WIDTH;
+      break;
+    case LEFT:
+      stateptr->player.body.data[i] = cur - 1;
+      break;
+    case DOWN:
+      stateptr->player.body.data[i] = cur + GRID_WIDTH;
+      break;
+    }
 
-  switch (stateptr->player.direction) {
+    int next = stateptr->player.body.data[i + 1];
+    int delta = next - cur;
+    switch (delta) {
+    case 1:
+      dir = LEFT;
+      break;
+    case -1:
+      dir = RIGHT;
+      break;
+    case GRID_WIDTH:
+      dir = UP;
+      break;
+    case -GRID_WIDTH:
+      dir = DOWN;
+      break;
+    default:
+      SDL_Log("game_step: shouldn't be here");
+      break;
+    }
+  }
+
+  int i = stateptr->player.length - 1;
+  int cur = stateptr->player.body.data[i];
+  switch (dir) {
   case RIGHT:
-    vector_push(&stateptr->player.body, head + 1);
+    stateptr->player.body.data[i] = cur + 1;
     break;
   case UP:
-    vector_push(&stateptr->player.body, head - GRID_WIDTH);
+    stateptr->player.body.data[i] = cur - GRID_WIDTH;
     break;
   case LEFT:
-    vector_push(&stateptr->player.body, head - 1);
+    stateptr->player.body.data[i] = cur - 1;
     break;
   case DOWN:
-    vector_push(&stateptr->player.body, head + GRID_WIDTH);
+    stateptr->player.body.data[i] = cur + GRID_WIDTH;
     break;
   }
 }
