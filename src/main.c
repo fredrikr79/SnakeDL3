@@ -4,7 +4,6 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
-// #define FPS 60
 #define STEP_RATE_MS 500
 
 static SDL_Window *window = NULL;
@@ -19,7 +18,6 @@ static SDL_Renderer *renderer = NULL;
 #define TILE_HEIGHT 24
 
 enum GRID_TILES { EMPTY, SNAKE, FRUIT };
-// enum SNAKE_PARTS { TAIL, BODY, HEAD };
 
 #define COLOR_SNAKE 80, 250, 123, SDL_ALPHA_OPAQUE
 #define COLOR_FRUIT 255, 85, 85, SDL_ALPHA_OPAQUE
@@ -43,7 +41,7 @@ typedef struct State {
 static Arena arena;
 
 #define INDEX_AT(row, col) ((row) * GRID_WIDTH + (col))
-#define ROW_AT(index) ((index) / GRID_WIDTH)
+#define ROW_AT(index) ((int)((index) / GRID_WIDTH))
 #define COL_AT(index) ((index) % GRID_WIDTH)
 #define SET_GRID_AT(grid, row, col, value) (grid)[INDEX_AT((row), (col))] = (value)
 #define GET_GRID_AT(grid, row, col) (grid)[INDEX_AT((row), (col))]
@@ -98,27 +96,48 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
   case SDL_EVENT_QUIT:
     return SDL_APP_SUCCESS;
   case SDL_EVENT_KEY_UP:
+    // VIRTUAL LAYOUT KEYS
+    switch (event->key.key) {
+    case SDLK_Q:
+      return SDL_APP_SUCCESS;
+    case SDLK_L:
+      stateptr->player.direction = RIGHT;
+      break;
+    case SDLK_K:
+      stateptr->player.direction = UP;
+      break;
+    case SDLK_H:
+      stateptr->player.direction = LEFT;
+      break;
+    case SDLK_J:
+      stateptr->player.direction = DOWN;
+      break;
+    }
+    // PHYSICAL LAYOUT KEYS
     switch (event->key.scancode) {
     case SDL_SCANCODE_ESCAPE:
       return SDL_APP_SUCCESS;
     case SDL_SCANCODE_RIGHT:
+    case SDL_SCANCODE_D:
       stateptr->player.direction = RIGHT;
       break;
     case SDL_SCANCODE_UP:
+    case SDL_SCANCODE_W:
       stateptr->player.direction = UP;
       break;
     case SDL_SCANCODE_LEFT:
+    case SDL_SCANCODE_A:
       stateptr->player.direction = LEFT;
       break;
     case SDL_SCANCODE_DOWN:
+    case SDL_SCANCODE_S:
       stateptr->player.direction = DOWN;
       break;
     default:
       break;
     }
-  default:
-    return SDL_APP_CONTINUE;
   }
+  return SDL_APP_CONTINUE;
 }
 
 void game_step(State *stateptr) {
@@ -181,7 +200,6 @@ void game_step(State *stateptr) {
 
 SDL_AppResult SDL_AppIterate(void *appstate) {
   State *stateptr = appstate;
-  Snake player = stateptr->player;
 
   const Uint64 now = SDL_GetTicks();
 
@@ -191,11 +209,12 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     stateptr->last_frame += STEP_RATE_MS;
   }
 
+  const int startx = (WINDOW_WIDTH - GRID_WIDTH * (TILE_WIDTH + GRID_PADDING)) / 2;
+  const int starty = (WINDOW_HEIGHT - GRID_HEIGHT * (TILE_HEIGHT + GRID_PADDING)) / 2;
+
   SDL_FRect rect;
   rect.w = TILE_WIDTH;
   rect.h = TILE_HEIGHT;
-  const int startx = (WINDOW_WIDTH - GRID_WIDTH * (TILE_WIDTH + GRID_PADDING)) / 2;
-  const int starty = (WINDOW_HEIGHT - GRID_HEIGHT * (TILE_HEIGHT + GRID_PADDING)) / 2;
 
   SDL_SetRenderDrawColor(renderer, COLOR_BG);
   SDL_RenderClear(renderer);
@@ -205,14 +224,13 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     for (int j = 0; j < GRID_WIDTH; j++) {
       rect.x = startx + j * (rect.w + GRID_PADDING);
       rect.y = starty + i * (rect.h + GRID_PADDING);
-      // SDL_Log("x: %f, y: %f, w: %f, h: %f", rect.x, rect.y, rect.w, rect.h);
       SDL_RenderFillRect(renderer, &rect);
     }
   }
 
   SDL_SetRenderDrawColor(renderer, COLOR_SNAKE);
-  for (int i = 0; i < player.length; i++) {
-    int b = player.body.data[i];
+  for (int i = 0; i < stateptr->player.length; i++) {
+    int b = stateptr->player.body.data[i];
     rect.x = startx + COL_AT(b) * (rect.w + GRID_PADDING);
     rect.y = starty + ROW_AT(b) * (rect.h + GRID_PADDING);
     SDL_RenderFillRect(renderer, &rect);
