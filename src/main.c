@@ -35,7 +35,7 @@ typedef struct Snake {
 } Snake;
 
 typedef struct State {
-  Snake *player;
+  Snake player;
   Vector fruits;
   Uint64 last_frame;
 } State;
@@ -79,16 +79,12 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     return SDL_APP_FAILURE;
   }
 
-  state->player = arena_alloc(&arena, 1, sizeof(Snake), _Alignof(Snake));
-  if (!state->player) {
-    SDL_Log("Failed to allocate player");
-    return SDL_APP_FAILURE;
-  }
-  state->player->direction = UP;
-  state->player->length = 3;
-  vector_new(&state->player->body);
-  vector_pusha(&state->player->body, (int[]){1, 2, 3}, 3);
-  vector_print(state->player->body);
+  Vector body;
+  vector_new(&body);
+  int i = INDEX_AT(GRID_WIDTH / 2, GRID_HEIGHT / 2);
+  vector_pusha(&body, (int[]){i, i + 1, i + 2}, 3);
+  vector_print(body);
+  state->player = (Snake){.direction = UP, .length = 3, .body = body};
 
   state->last_frame = SDL_GetTicks();
   *appstate = state;
@@ -106,16 +102,16 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
     case SDL_SCANCODE_ESCAPE:
       return SDL_APP_SUCCESS;
     case SDL_SCANCODE_RIGHT:
-      stateptr->player->direction = RIGHT;
+      stateptr->player.direction = RIGHT;
       break;
     case SDL_SCANCODE_UP:
-      stateptr->player->direction = UP;
+      stateptr->player.direction = UP;
       break;
     case SDL_SCANCODE_LEFT:
-      stateptr->player->direction = LEFT;
+      stateptr->player.direction = LEFT;
       break;
     case SDL_SCANCODE_DOWN:
-      stateptr->player->direction = DOWN;
+      stateptr->player.direction = DOWN;
       break;
     default:
       break;
@@ -128,29 +124,29 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 void game_step(State *stateptr) {
   // SDL_Log("snek: %d %d %d %d", player->direction, player->length, player->head_index,
   //         player->tail_index);
-  Snake *playerptr = stateptr->player;
-  int head = vector_pop(&stateptr->player->body);
-  vector_push(&stateptr->player->body, head);
+  Snake player = stateptr->player;
+  int head = vector_pop(&stateptr->player.body);
+  vector_push(&stateptr->player.body, head);
 
-  switch (playerptr->direction) {
+  switch (player.direction) {
   case RIGHT:
-    vector_push(&playerptr->body, head + 1);
+    vector_push(&player.body, head + 1);
     break;
   case UP:
-    vector_push(&playerptr->body, head - GRID_WIDTH);
+    vector_push(&player.body, head - GRID_WIDTH);
     break;
   case LEFT:
-    vector_push(&playerptr->body, head - 1);
+    vector_push(&player.body, head - 1);
     break;
   case DOWN:
-    vector_push(&playerptr->body, head + GRID_WIDTH);
+    vector_push(&player.body, head + GRID_WIDTH);
     break;
   }
 }
 
 SDL_AppResult SDL_AppIterate(void *appstate) {
   State *stateptr = appstate;
-  Snake *playerptr = stateptr->player;
+  Snake player = stateptr->player;
 
   const Uint64 now = SDL_GetTicks();
 
@@ -180,8 +176,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   }
 
   SDL_SetRenderDrawColor(renderer, COLOR_SNAKE);
-  for (int i = 0; i < playerptr->length; i++) {
-    int b = playerptr->body.data[i];
+  for (int i = 0; i < player.length; i++) {
+    int b = player.body.data[i];
     rect.x = startx + ROW_AT(b) * (rect.w + GRID_PADDING);
     rect.y = starty + COL_AT(b) * (rect.h + GRID_PADDING);
     SDL_RenderFillRect(renderer, &rect);
@@ -194,5 +190,6 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   /* SDL will clean up the window/renderer for us. */
+  vector_free(&((State *)appstate)->player.body);
   arena_free(&arena);
 }
