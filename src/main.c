@@ -15,7 +15,7 @@ static SDL_Renderer *renderer = NULL;
 #define GRID_PADDING 4
 #define GRID_WIDTH 18
 #define GRID_HEIGHT 15
-#define TILE_WIDTH 24
+#define TILE_WIDTH 28
 #define TILE_HEIGHT 24
 
 enum GRID_TILES { EMPTY, SNAKE, FRUIT };
@@ -122,24 +122,21 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 }
 
 void game_step(State *stateptr) {
-  // SDL_Log("snek: %d %d %d %d", player->direction, player->length, player->head_index,
-  //         player->tail_index);
-  Snake player = stateptr->player;
+  vector_print(stateptr->player.body);
   int head = vector_pop(&stateptr->player.body);
-  vector_push(&stateptr->player.body, head);
 
-  switch (player.direction) {
+  switch (stateptr->player.direction) {
   case RIGHT:
-    vector_push(&player.body, head + 1);
+    vector_push(&stateptr->player.body, head + 1);
     break;
   case UP:
-    vector_push(&player.body, head - GRID_WIDTH);
+    vector_push(&stateptr->player.body, head - GRID_WIDTH);
     break;
   case LEFT:
-    vector_push(&player.body, head - 1);
+    vector_push(&stateptr->player.body, head - 1);
     break;
   case DOWN:
-    vector_push(&player.body, head + GRID_WIDTH);
+    vector_push(&stateptr->player.body, head + GRID_WIDTH);
     break;
   }
 }
@@ -178,8 +175,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   SDL_SetRenderDrawColor(renderer, COLOR_SNAKE);
   for (int i = 0; i < player.length; i++) {
     int b = player.body.data[i];
-    rect.x = startx + ROW_AT(b) * (rect.w + GRID_PADDING);
-    rect.y = starty + COL_AT(b) * (rect.h + GRID_PADDING);
+    rect.x = startx + COL_AT(b) * (rect.w + GRID_PADDING);
+    rect.y = starty + ROW_AT(b) * (rect.h + GRID_PADDING);
     SDL_RenderFillRect(renderer, &rect);
   }
 

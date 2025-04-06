@@ -38,7 +38,7 @@ void vector_pusha(Vector *v, int *vals, int n) {
 
 int vector_pop(Vector *v) {
   if (v->size < 1) {
-    printf("vector_pop: popping empty vector");
+    printf("vector_pop: popping empty vector\n");
     return 0;
   }
   int val = v->data[v->size - 1];
